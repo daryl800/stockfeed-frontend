@@ -29,7 +29,7 @@ export default function Stockfeed() {
 
     const STOCK_WS_URL =
       (window.location.protocol === "https:" ? "wss" : "ws") +
-      "://memorykeeper.duckdns.org:9002/ws/stockfeed";
+      "://memorykeeper.duckdns.org/ws/stockfeed";
 
     function connect() {
       wsRef.current = new WebSocket(STOCK_WS_URL);
