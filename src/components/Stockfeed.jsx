@@ -69,8 +69,9 @@ export default function Stockfeed() {
     border: "1px solid #ccc",
     padding: "6px",
     textAlign: "center",
-    color: val !== undefined ? (forceRed || val < 0 ? "red" : "green") : "black",
-    fontWeight: forceRed || (val !== undefined && val < 0) ? "bold" : "normal",
+    // color: val !== undefined ? (forceRed || val < 0 ? "red" : "green") : "black",
+    color: val !== undefined ? (forcedGreen || val > 0 ? "green" : "red") : "black",
+    fontWeight: forcedGreen || (val !== undefined && val < 0) ? "bold" : "normal",
   });
 
   return (
@@ -105,7 +106,9 @@ export default function Stockfeed() {
               gridTemplateColumns: "repeat(7, 1fr)",
             }}
           >
-            <div style={{ ...cellStyle(), fontWeight: "bold" }}>{msg.symbol}</div>
+            <div style={{ ...cellStyle(), fontWeight: "bold" }}>
+                {msg.symbol}
+            </div>
             <div style={cellStyle()}>{formatTime(msg.time)}</div>
             <div style={cellStyle(msg.price, msg.price < msg.day_open)}>
               {msg.price.toFixed(3)}
@@ -114,7 +117,9 @@ export default function Stockfeed() {
             <div style={cellStyle(msg.pct_vs_day_open)}>
               {msg.pct_vs_day_open.toFixed(5)}
             </div>
-            <div style={cellStyle(msg.pct_vs_last_close)}>{msg.direction}</div>
+            <div style={cellStyle(msg.pct_vs_last_close)}>
+                {msg.direction}
+            </div>
             <div style={cellStyle(msg.pct_vs_last_close)}>
               {msg.pct_vs_last_close.toFixed(5)}
             </div>
