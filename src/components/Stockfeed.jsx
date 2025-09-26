@@ -91,16 +91,24 @@ export default function Stockfeed() {
     return { border: "1px solid #ccc", padding: "6px", textAlign: "center", color, fontWeight };
   };
 
-  // Group messages by symbol, max 5 per symbol, sort alphabetically
-  const grouped = messages.reduce((acc, msg) => {
-    if (!acc[msg.symbol]) acc[msg.symbol] = [];
-    if (acc[msg.symbol].length < 5) acc[msg.symbol].push(msg);
-    return acc;
-  }, {});
+// ... same imports and hooks as before
 
-  const sortedMessages = Object.keys(grouped)
-    .sort()
-    .flatMap((symbol) => grouped[symbol]);
+// Group messages by symbol, max 5 per symbol
+const grouped = messages.reduce((acc, msg) => {
+  if (!acc[msg.symbol]) acc[msg.symbol] = [];
+  if (acc[msg.symbol].length < 5) acc[msg.symbol].push(msg);
+  return acc;
+}, {});
+
+// Sort groups by highest pct_vs_day_open descending
+const sortedMessages = Object.entries(grouped)
+  .sort((a, b) => {
+    const maxA = Math.max(...a[1].map((m) => m.pct_vs_day_open));
+    const maxB = Math.max(...b[1].map((m) => m.pct_vs_day_open));
+    return maxB - maxA; // descending
+  })
+  .flatMap(([symbol, msgs]) => msgs);
+
 
   const now = Date.now();
 
