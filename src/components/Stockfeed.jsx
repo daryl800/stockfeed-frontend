@@ -91,23 +91,23 @@ export default function Stockfeed() {
     return { border: "1px solid #ccc", padding: "6px", textAlign: "center", color, fontWeight };
   };
 
-// ... same imports and hooks as before
+  // ... same imports and hooks as before
 
-// Group messages by symbol, max 5 per symbol
-const grouped = messages.reduce((acc, msg) => {
-  if (!acc[msg.symbol]) acc[msg.symbol] = [];
-  if (acc[msg.symbol].length < 5) acc[msg.symbol].push(msg);
-  return acc;
-}, {});
+  // Group messages by symbol, max 5 per symbol
+  const grouped = messages.reduce((acc, msg) => {
+    if (!acc[msg.symbol]) acc[msg.symbol] = [];
+    if (acc[msg.symbol].length < 5) acc[msg.symbol].push(msg);
+    return acc;
+  }, {});
 
-// Sort groups by highest pct_vs_day_open descending
-const sortedMessages = Object.entries(grouped)
-  .sort((a, b) => {
-    const maxA = Math.max(...a[1].map((m) => m.pct_vs_day_open));
-    const maxB = Math.max(...b[1].map((m) => m.pct_vs_day_open));
-    return maxB - maxA; // descending
-  })
-  .flatMap(([symbol, msgs]) => msgs);
+  // Sort groups by highest pct_vs_day_open descending
+  const sortedMessages = Object.entries(grouped)
+    .sort((a, b) => {
+      const maxA = Math.max(...a[1].map((m) => m.pct_vs_day_open));
+      const maxB = Math.max(...b[1].map((m) => m.pct_vs_day_open));
+      return maxB - maxA; // descending
+    })
+    .flatMap(([symbol, msgs]) => msgs);
 
 
   const now = Date.now();
@@ -121,21 +121,21 @@ const sortedMessages = Object.entries(grouped)
   return (
     <div style={{ padding: 20 }}>
       <h2 style={{ textAlign: "center" }}>Stockfeed {today}</h2>
-<div style={{ textAlign: "center", marginBottom: 10 }}>
-  <button
-    onClick={clearMessages}
-    style={{
-      padding: "6px 12px",
-      cursor: "pointer",
-      backgroundColor: "lightgrey",
-      border: "1px solid #999",
-      borderRadius: "4px",
-      fontWeight: "bold",
-    }}
-  >
-    Clear All
-  </button>
-</div>
+      <div style={{ textAlign: "center", marginBottom: 10 }}>
+        <button
+          onClick={clearMessages}
+          style={{
+            padding: "6px 12px",
+            cursor: "pointer",
+            backgroundColor: "lightgrey",
+            border: "1px solid #999",
+            borderRadius: "4px",
+            fontWeight: "bold",
+          }}
+        >
+          Clear All
+        </button>
+      </div>
 
 
       {/* Grid Header */}
@@ -146,7 +146,7 @@ const sortedMessages = Object.entries(grouped)
           textAlign: "center",
         }}
       >
-        {["Symbol","Time","Current","Day Open","vs Day Open (%)","🟢/🔴","vs Lst Bar Close (%)"].map((header) => (
+        {["Symbol", "Time", "Day Open", "Current", "vs Day Open (%)", "🟢/🔴", "vs Lst Bar Close (%)"].map((header) => (
           <div
             key={header}
             style={{
@@ -167,20 +167,20 @@ const sortedMessages = Object.entries(grouped)
         {sortedMessages.map((msg, idx) => {
           const isRecent = now - msg._updated < 60 * 1000; // last 1 min
           return (
-<div
-  key={idx}
-  style={{
-    display: "grid",
-    gridTemplateColumns: "repeat(7, 1fr)",
-    backgroundColor: isRecent ? "#ffe0e5" : "transparent", // lighter pink
-  }}
->
+            <div
+              key={idx}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(7, 1fr)",
+                backgroundColor: isRecent ? "#ffe0e5" : "transparent", // lighter pink
+              }}
+            >
               <div style={{ ...cellStyle(), fontWeight: "bold" }}>{msg.symbol}</div>
               <div style={cellStyle()}>{formatTime(msg.time)}</div>
+              <div style={cellStyle()}>{msg.day_open.toFixed(3)}</div>
               <div style={cellStyle(msg.price - msg.day_open)}>
                 {msg.price.toFixed(3)}
               </div>
-              <div style={cellStyle()}>{msg.day_open.toFixed(3)}</div>
               <div style={cellStyle(msg.pct_vs_day_open)}>
                 {msg.pct_vs_day_open.toFixed(5)}
               </div>
