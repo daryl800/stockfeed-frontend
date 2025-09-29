@@ -83,7 +83,7 @@ export default function Stockfeed() {
         color = "red";
       }
     }
-    return { border: "1px solid #ccc", padding: "6px", textAlign: "center", color, fontWeight };
+    return { border: "1px solid darkgrey", padding: "6px", textAlign: "center", color, fontWeight };
   };
 
   // ... same imports and hooks as before
@@ -115,7 +115,7 @@ export default function Stockfeed() {
 
   return (
     <div style={{ padding: 20 }}>
-      <h2 style={{ textAlign: "center" }}>Stockfeed {today}</h2>
+      <h2 style={{ textAlign: "center", color: "blueviolet" }}>STOCKFEED {today}</h2>
       <div style={{ textAlign: "center", marginBottom: 10 }}>
         <button
           onClick={clearMessages}
@@ -126,6 +126,7 @@ export default function Stockfeed() {
             border: "1px solid #999",
             borderRadius: "4px",
             fontWeight: "bold",
+            color: "blue"
           }}
         >
           Clear All
@@ -145,11 +146,12 @@ export default function Stockfeed() {
           <div
             key={header}
             style={{
-              border: "1px solid #ccc",
+              border: "1px solid darkgrey",
               padding: "6px",
               textAlign: "center",
               fontWeight: "bold",
               backgroundColor: "grey",
+              color: "white"
             }}
           >
             {header}
@@ -166,11 +168,18 @@ export default function Stockfeed() {
             return maxB - maxA;
           })
           .map(([symbol, msgs], groupIdx) => {
-            const groupBg = groupIdx % 2 === 0 ? "white" : "lightblue"; // alternate
+            const groupBg = groupIdx % 2 === 0 ? "white" : "lightgrey"; // base stripe color
 
             return msgs.map((msg, idx) => {
-              const isRecent = Date.now() - msg._updated < 60 * 1000;
-              const rowBg = isRecent ? "#ffe0e5" : groupBg; // recent overrides
+              const now = Date.now();
+              const isRecent = now - msg._updated < 60 * 1000; // last 1 min
+
+              let rowBg = groupBg; // default stripe color
+
+              if (isRecent) {
+                // override stripe if recent
+                rowBg = msg.pct_vs_last_close > 0 ? "lightpink" : "lightblue";
+              }
 
               return (
                 <div
