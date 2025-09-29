@@ -24,12 +24,7 @@ export default function Stockfeed() {
 
   const today = new Date().toISOString().slice(0, 10);
 
-  const STOCK_WS_URL = (() => {
-    const hostname = window.location.hostname;
-    return hostname === "localhost"
-      ? "ws://memorykeeper.duckdns.org:9002/ws/stockfeed"
-      : "wss://memorykeeper.duckdns.org/ws/stockfeed";
-  })();
+  const STOCK_WS_URL = "wss://memorykeeper.duckdns.org/ws/stockfeed";
 
   useEffect(() => {
     if (connectedRef.current) return;
@@ -154,7 +149,7 @@ export default function Stockfeed() {
               padding: "6px",
               textAlign: "center",
               fontWeight: "bold",
-              backgroundColor: "lightgrey",
+              backgroundColor: "grey",
             }}
           >
             {header}
@@ -164,33 +159,45 @@ export default function Stockfeed() {
 
       {/* Grid Rows */}
       <div>
-        {sortedMessages.map((msg, idx) => {
-          const isRecent = now - msg._updated < 60 * 1000; // last 1 min
-          return (
-            <div
-              key={idx}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(7, 1fr)",
-                backgroundColor: isRecent ? "#ffe0e5" : "transparent", // lighter pink
-              }}
-            >
-              <div style={{ ...cellStyle(), fontWeight: "bold" }}>{msg.symbol}</div>
-              <div style={cellStyle()}>{formatTime(msg.time)}</div>
-              <div style={cellStyle()}>{msg.day_open.toFixed(3)}</div>
-              <div style={cellStyle(msg.price - msg.day_open)}>
-                {msg.price.toFixed(3)}
-              </div>
-              <div style={cellStyle(msg.pct_vs_day_open)}>
-                {msg.pct_vs_day_open.toFixed(5)}
-              </div>
-              <div style={cellStyle(msg.pct_vs_last_close)}>{msg.direction}</div>
-              <div style={cellStyle(msg.pct_vs_last_close)}>
-                {msg.pct_vs_last_close.toFixed(5)}
-              </div>
-            </div>
-          );
-        })}
+        {Object.entries(grouped)
+          .sort((a, b) => {
+            const maxA = Math.max(...a[1].map((m) => m.pct_vs_day_open));
+            const maxB = Math.max(...b[1].map((m) => m.pct_vs_day_open));
+            return maxB - maxA;
+          })
+          .map(([symbol, msgs], groupIdx) => {
+            const groupBg = groupIdx % 2 === 0 ? "white" : "lightblue"; // alternate
+
+            return msgs.map((msg, idx) => {
+              const isRecent = Date.now() - msg._updated < 60 * 1000;
+              const rowBg = isRecent ? "#ffe0e5" : groupBg; // recent overrides
+
+              return (
+                <div
+                  key={`${symbol}-${idx}`}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(7, 1fr)",
+                    backgroundColor: rowBg,
+                  }}
+                >
+                  <div style={{ ...cellStyle(), fontWeight: "bold" }}>{msg.symbol}</div>
+                  <div style={cellStyle()}>{formatTime(msg.time)}</div>
+                  <div style={cellStyle()}>{msg.day_open.toFixed(3)}</div>
+                  <div style={cellStyle(msg.price - msg.day_open)}>
+                    {msg.price.toFixed(3)}
+                  </div>
+                  <div style={cellStyle(msg.pct_vs_day_open)}>
+                    {msg.pct_vs_day_open.toFixed(5)}
+                  </div>
+                  <div style={cellStyle(msg.pct_vs_last_close)}>{msg.direction}</div>
+                  <div style={cellStyle(msg.pct_vs_last_close)}>
+                    {msg.pct_vs_last_close.toFixed(5)}
+                  </div>
+                </div>
+              );
+            });
+          })}
       </div>
     </div>
   );
