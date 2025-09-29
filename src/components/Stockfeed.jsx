@@ -5,17 +5,20 @@ export default function Stockfeed() {
     const saved = localStorage.getItem("stockfeed_messages");
     return saved ? JSON.parse(saved) : [];
   });
-  const [, tick] = useState(0); // force re-render
+
+  const [, tick] = useState(0); // force re-render for highlights
   const wsRef = useRef(null);
   const connectedRef = useRef(false);
   const MAX_ENTRIES = 200;
 
   // Audio objects
   const dingSound = useRef(new Audio('/stockfeed-frontend/sounds/ding.mp3')).current;
-  const dongSound = useRef(new Audio('/stockfeed-frontend/sounds/dong2.mp3')).current;
+  const dongSound = useRef(new Audio('/stockfeed-frontend/sounds/dong.mp3')).current;
 
-  // Flag to track if sounds are enabled by user
+  // Sounds enabled flag
   const [soundsEnabled, setSoundsEnabled] = useState(false);
+  const soundsEnabledRef = useRef(soundsEnabled);
+  useEffect(() => { soundsEnabledRef.current = soundsEnabled; }, [soundsEnabled]);
 
   const formatTime = (isoString) => {
     try {
@@ -43,12 +46,15 @@ export default function Stockfeed() {
           const data = JSON.parse(event.data);
           data._updated = Date.now();
 
-          // Only play sound if user enabled
-          if (soundsEnabled) {
+          console.log("🔔 Sound check for message:", data.symbol, data.pct_vs_last_close);
+
+          if (soundsEnabledRef.current) {
             if (data.pct_vs_last_close > 0) {
-              dingSound.play().catch(() => { });
+              dingSound.currentTime = 0;
+              dingSound.play().then(() => console.log("✅ dingSound played")).catch(err => console.error("❌ dingSound play error:", err));
             } else if (data.pct_vs_last_close < 0) {
-              dongSound.play().catch(() => { });
+              dongSound.currentTime = 0;
+              dongSound.play().then(() => console.log("✅ dongSound played")).catch(err => console.error("❌ dongSound play error:", err));
             }
           }
 
@@ -75,9 +81,9 @@ export default function Stockfeed() {
 
     connect();
     return () => wsRef.current?.close();
-  }, [STOCK_WS_URL, soundsEnabled]);
+  }, [STOCK_WS_URL]);
 
-  // force update every 1 second for highlights
+  // Force update for highlights every 1 second
   useEffect(() => {
     const interval = setInterval(() => tick(t => t + 1), 1000);
     return () => clearInterval(interval);
@@ -120,12 +126,23 @@ export default function Stockfeed() {
         {!soundsEnabled && (
           <button
             onClick={() => {
-              // Unlock sounds
-              dingSound.play().then(() => dingSound.pause()).catch(() => { });
+              // Unlock sounds by playing briefly
               dingSound.currentTime = 0;
-              dongSound.play().then(() => dongSound.pause()).catch(() => { });
+              dingSound.play().then(() => {
+                dingSound.pause();
+                dingSound.currentTime = 0;
+                console.log("✅ dingSound unlocked");
+              }).catch(() => { });
+
               dongSound.currentTime = 0;
+              dongSound.play().then(() => {
+                dongSound.pause();
+                dongSound.currentTime = 0;
+                console.log("✅ dongSound unlocked");
+              }).catch(() => { });
+
               setSoundsEnabled(true);
+              console.log("🔊 Enable Sounds clicked");
             }}
             style={{ padding: "6px 12px", marginLeft: 10, cursor: "pointer", backgroundColor: "lightgreen", border: "1px solid #999", borderRadius: "4px", fontWeight: "bold", color: "darkgreen" }}
           >
