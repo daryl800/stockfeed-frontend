@@ -20,6 +20,20 @@ export default function Stockfeed() {
   const soundsEnabledRef = useRef(soundsEnabled);
   useEffect(() => { soundsEnabledRef.current = soundsEnabled; }, [soundsEnabled]);
 
+  // Clock state
+  const [currentTime, setCurrentTime] = useState(() => {
+    const now = new Date();
+    return now.toLocaleTimeString("en-GB", { hour12: false }); // hh:mm:ss
+  });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date();
+      setCurrentTime(now.toLocaleTimeString("en-GB", { hour12: false }));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const formatTime = (isoString) => {
     try {
       const dt = new Date(isoString);
@@ -113,7 +127,10 @@ export default function Stockfeed() {
 
   return (
     <div style={{ padding: 20 }}>
-      <h2 style={{ textAlign: "center", color: "blueviolet" }}>STOCKFEED {today}</h2>
+      <h2 style={{ textAlign: "center", color: "blueviolet" }}>
+        STOCKFEED {today}{" "}
+        <span style={{ color: "grey" }}>[{currentTime}]</span>
+      </h2>
 
       <div style={{ textAlign: "center", marginBottom: 10 }}>
         <button
@@ -169,7 +186,10 @@ export default function Stockfeed() {
             return msgs.map((msg, idx) => {
               const isRecent = Date.now() - msg._updated < 60 * 1000;
               let rowBg = groupBg;
-              if (isRecent) rowBg = msg.pct_vs_last_close > 0 ? "lightpink" : "lightblue";
+              if (isRecent) {
+                if (msg.pct_vs_last_close > 0) rowBg = "lightgreen";
+                else if (msg.pct_vs_last_close < 0) rowBg = "lightpink";
+              }
 
               return (
                 <div key={`${symbol}-${idx}`} style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", backgroundColor: rowBg }}>
